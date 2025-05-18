@@ -1,0 +1,6 @@
+json/
+
+**/__pycache__/
+
+apr.txt
+inventory.json

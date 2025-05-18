@@ -1,0 +1,12 @@
+[
+    {
+        "id": "fd16b233-cb62-4175-b335-0d5dc2b4139d",
+        "type": "Testes",
+        "date": "12/04/2025",
+        "time": "10:00",
+        "location": "consultorio",
+        "duration": 60,
+        "professional": "medico",
+        "status": false
+    }
+]
