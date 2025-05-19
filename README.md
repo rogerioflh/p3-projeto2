@@ -1,71 +1,168 @@
-# Sports Team Management App
+1. Padrão Criacional: Factory Method
 
-## Implementation of system requested in software project discipline
+event.py
+```
+@classmethod
+def create_event(cls, type, date, time, location):
+    return cls(type, date, time, location)
+```
 
-**Student** : Marta Mirely Nascimento dos Santos
+finacial.py
+```
+@classmethod
+def from_dict(cls, data):
 
-**Teacher** : Baldoíno Fonseca
+@classmethod
+def load_from_json(cls, filename="financial.json"):
+```
 
-**How to run the project** : 
+player.py
+```
+@classmethod
+def from_dict(cls, data):
+    return cls(...)
+```
 
-* Clone the repository using: 
+recruitmentPlayer.py
+```
+@classmethod
+def from_dict(cls, data):
+    return cls(...)
+```
 
- `git clone -project address`
+user.py
+```
+@staticmethod
+def criar_usuario_factory(tipo, nome, username, password):
+    ...
+```
 
- * Access the project folder:
+2. Padrão Estrutural: Adapter, Decorator, Proxy
 
- `cd project`
+event.py -> Adpter
+```
+def to_json(self):
+    return json.dumps(self.to_dict())
+```
 
- * Run the file main.py:
+financial.py -> decorator
+```
+class FinancialDecorator:
+    def __init__(self, financial):
+        self._financial = financial
 
- `python main.py`
+    def __getattr__(self, name):
+        return getattr(self._financial, name)
 
-**Required resources** : Any version from Python 3 onwards
+    def print_summary(self):
+        print(self._financial.__str__())
+```
 
+player.py -> decorator
+```
+class PlayerDecorator:
+    def __init__(self, player):
+        self._player = player
 
-**Implemeted features:**
+    def __getattr__(self, attr):
+        return getattr(self._player, attr)
 
+    def display_with_title(self):
+        return f"*** Jogador Destaque ***\n{self._player}"
+```
 
-1. Team Roster Management
+recruitmentPlayer.py -> Adpter
+```
+def to_json(self):
+    return json.dumps(self.to_dict(), indent=4)
+```
 
-- Implemented class: Player
+user.py -> Proxy
+```
+class UsuarioProxy:
+    ...
+```
 
-2. Match Scheduling
+3. Padrão Comportamental: Observer, Command-style update, Visitor
 
-- Implemented class: MatchScheduler
+event.py -> Observer
+```
+# Atributo:
+self._observers = []
 
-3. Performance Tracking
+# Métodos:
+def add_observer(self, observer):
+def remove_observer(self, observer):
+def notify_observers(self, message):
+```
 
-- Implemented class: Performance
+financial.py -> Observer
+```
+self._observers = []
 
-4. Injury and Health Monitoring
+def register_observer(self, observer):
+    ...
+def remove_observer(self, observer):
+    ...
+def notify_observers(self, record):
+    ...
+```
 
-- Implemented class: HealthMonitor
+```
+def add_financial_record(...):
+    ...
+    self.notify_observers(record)
+```
 
-5. Training Schedule Management
+player.py -> Command-style update
+```
+def update(self, **kwargs):
+    for key, value in kwargs.items():
+        if hasattr(self, key):
+            setattr(self, key, value)
+```
 
-- Implemented class: TrainingManager
+recruitmentPlayer.py -> Visitor
+```
+def accept(self, visitor):
+    return visitor.visit(self)
+```
 
-6. Equipment Inventory Management
+```
+class ProspectVisitor:
+    def visit(self, prospect):
+        return f"{prospect.name} ({prospect.position}), Age: {prospect.age}"
+```
 
-- Implemented class: Inventory
+user.py -> Observer
+```
+def adicionar_observador(self, observador):
+    self.observadores.append(observador)
 
-7. Player Recruitment
+def notificar_observadores(self, usuario):
+    for obs in self.observadores:
+        obs(usuario)
+```
 
-- Implemented class: RecruitmentManager
+```
+def novo_usuario_observador(usuario):
+    print(f"Observador: Novo usuário criado -> {usuario}")
+```
 
-8. Financial Management
-
-- Implemented class: Financial
-
-9. Media and Public Relations
-
-- Implemented class: MediaManager
-
-10. Fan Engagement Tools
-
--It was not implemented because I did not find an interesting way to show this correctly in this version.
-
-
-
-
+| Tipo de Padrão | Nome do Padrão | Onde está implementado                                |
+| -------------- | -------------- | ----------------------------------------------------- |
+| **Criacional**     | Factory Method | `create_event`                                        |
+| **Estrutural**     | Adapter        | `to_json` (adapta para JSON)                          |
+| **Comportamental** | Observer       | `add_observer`, `remove_observer`, `notify_observers` |
+| **Criacional**     | Factory Method | `from_dict`, `load_from_json`                              |
+| **Estrutural**     | Decorator      | `FinancialDecorator`                                       |
+| **Comportamental** | Observer       | `register_observer`, `remove_observer`, `notify_observers` |
+| **Criacional**     | Factory Method       | `from_dict`              |
+| **Estrutural**     | Decorator            | `PlayerDecorator`        |
+| **Comportamental** | Command-style Update | `update(self, **kwargs)` |
+| **Criacional**     | Factory Method | `from_dict(cls, data)`                            |
+| **Estrutural**     | Adapter        | `to_json(self)`                                   |
+| **Comportamental** | Visitor        | `accept(self, visitor)` + `ProspectVisitor.visit` |
+| **Criacional**     | Factory Method | `criar_usuario_factory()` no `GerenciadorUsuarios`                                          |
+| **Estrutural**     | Proxy          | Classe `UsuarioProxy`                                                                       |
+| **Comportamental** | Observer       | Métodos `adicionar_observador()` e `notificar_observadores()` + `novo_usuario_observador()` |
