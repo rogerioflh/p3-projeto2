@@ -1,6 +1,6 @@
 ## Para rodar o código, navegue até a pasta test e execute o código manager.py
 
-1. Padrão Criacional: Factory Method
+## 1. Padrão Criacional: Factory Method
 
 event.py
 ```
@@ -39,7 +39,7 @@ def criar_usuario_factory(tipo, nome, username, password):
     ...
 ```
 
-2. Padrão Estrutural: Adapter, Decorator, Proxy
+## 2. Padrão Estrutural: Adapter, Decorator, Proxy
 
 event.py -> Adpter
 ```
@@ -85,7 +85,7 @@ class UsuarioProxy:
     ...
 ```
 
-3. Padrão Comportamental: Observer, Command-style update, Visitor
+## 3. Padrão Comportamental: Observer, Command-style update, Visitor
 
 event.py -> Observer
 ```
