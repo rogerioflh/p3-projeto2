@@ -9,6 +9,7 @@ def create_event(cls, type, date, time, location):
     return cls(type, date, time, location)
 ```
 Este método de classe é uma forma simples do Factory Method, pois encapsula a criação de instâncias da classe Event (ou de suas subclasses). Isso permite controlar ou estender a lógica de criação de objetos sem modificar diretamente o construtor.
+
 ---
 
 finacial.py
