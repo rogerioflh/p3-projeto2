@@ -15,8 +15,32 @@ class Financial:
             "viagens": 0,  
         }
         self._financial_goals = {} 
+        self._observers = []  # For Observer pattern
 
-   
+    # Creational Pattern: Factory Method
+    @classmethod
+    def from_dict(cls, data):
+        instance = cls()
+        instance._annual_revenue = data.get("annual_revenue", 0)
+        instance._monthly_revenue = data.get("monthly_revenue", 0)
+        instance._financial_records = data.get("financial_records", [])
+        instance._monthly_expenses = data.get("monthly_expenses", {})
+        instance._financial_goals = data.get("financial_goals", {})
+        return instance
+
+    # Behavioral Pattern: Observer
+    def register_observer(self, observer):
+        if observer not in self._observers:
+            self._observers.append(observer)
+
+    def remove_observer(self, observer):
+        if observer in self._observers:
+            self._observers.remove(observer)
+
+    def notify_observers(self, record):
+        for observer in self._observers:
+            observer.update(record)
+
     @property
     def annual_revenue(self):
         return self._annual_revenue
@@ -64,9 +88,9 @@ class Financial:
         }
         self._financial_records.append(record)
         self.save_to_json()
+        self.notify_observers(record)  # Notify observers
 
     def get_monthly_summary(self, month, year):
-        """Retorna um resumo financeiro mensal."""
         monthly_records = [
             record for record in self._financial_records
             if datetime.strptime(record["date"], "%d/%m/%Y").month == month
@@ -81,7 +105,6 @@ class Financial:
         }
 
     def get_semester_summary(self, semester, year):
-        """Retorna um resumo financeiro semestral."""
         start_month = (semester - 1) * 6 + 1
         end_month = start_month + 5
         semester_records = [
@@ -98,7 +121,6 @@ class Financial:
         }
 
     def get_annual_summary(self, year):
-        """Retorna um resumo financeiro anual."""
         annual_records = [
             record for record in self._financial_records
             if datetime.strptime(record["date"], "%d/%m/%Y").year == year
@@ -112,14 +134,12 @@ class Financial:
         }
 
     def set_financial_goal(self, goal_type, target_amount):
-        """Define uma meta financeira."""
         if goal_type.lower() not in ["gasto", "lucro"]:
             raise ValueError("Tipo de meta inválido. Use 'gasto' ou 'lucro'.")
         self._financial_goals[goal_type.lower()] = target_amount
         self.save_to_json()
 
     def check_goals(self):
-        """Verifica se as metas financeiras foram atingidas."""
         results = {}
         for goal_type, target_amount in self._financial_goals.items():
             if goal_type == "gasto":
@@ -134,30 +154,15 @@ class Financial:
         return results
 
     def save_to_json(self, filename="financial.json"):
-        """Salva os dados financeiros em um arquivo JSON."""
         with open(filename, "w") as file:
             json.dump(self.to_dict(), file, indent=4)
+
     @classmethod
     def load_from_json(cls, filename="financial.json"):
-        """Carrega os dados financeiros de um arquivo JSON."""
         try:
             with open(filename, "r") as file:
                 data = json.load(file)
-                finance = cls()  
-                if isinstance(data, dict):  
-                    finance._annual_revenue = data.get("annual_revenue", 0)
-                    finance._monthly_revenue = data.get("monthly_revenue", 0)
-                    finance._financial_records = data.get("financial_records", [])
-                    finance._monthly_expenses = data.get("monthly_expenses", {})
-                    finance._financial_goals = data.get("financial_goals", {})
-                elif isinstance(data, list):  
-                    for item in data:
-                        finance._annual_revenue = item.get("annual_revenue", 0)
-                        finance._monthly_revenue = item.get("monthly_revenue", 0)
-                        finance._financial_records = item.get("financial_records", [])
-                        finance._monthly_expenses = item.get("monthly_expenses", {})
-                        finance._financial_goals = item.get("financial_goals", {})
-                return finance
+                return cls.from_dict(data)
         except FileNotFoundError:
             print(f"Arquivo {filename} não encontrado. Iniciando com lista vazia.")
             return cls()  
@@ -166,7 +171,6 @@ class Financial:
             return cls()  
 
     def to_dict(self):
-        """Converte o objeto Financial em um dicionário."""
         return {
             "annual_revenue": self._annual_revenue,
             "monthly_revenue": self._monthly_revenue,
@@ -176,15 +180,30 @@ class Financial:
         }
 
     def __str__(self):
-        summary = self.get_financial_summary()
         return (
             f"Resumo Financeiro:\n"
             f"Faturamento Anual: R${self._annual_revenue:.2f}\n"
             f"Faturamento Mensal: R${self._monthly_revenue:.2f}\n"
             f"Gastos Mensais:\n"
-            f"  - Folha de Pagamento: R${self._monthly_expenses['folha_pagamento']:.2f}\n"
-            f"  - Saúde: R${self._monthly_expenses['saude']:.2f}\n"
-            f"  - Alimentação: R${self._monthly_expenses['alimentacao']:.2f}\n"
-            f"  - Manutenção: R${self._monthly_expenses['manutencao']:.2f}\n"
-            f"  - Viagens: R${self._monthly_expenses['viagens']:.2f}\n"
+            f"  - Folha de Pagamento: R${self._monthly_expenses.get('folha_pagamento', 0):.2f}\n"
+            f"  - Saúde: R${self._monthly_expenses.get('saude', 0):.2f}\n"
+            f"  - Alimentação: R${self._monthly_expenses.get('alimentacao', 0):.2f}\n"
+            f"  - Manutenção: R${self._monthly_expenses.get('manutencao', 0):.2f}\n"
+            f"  - Viagens: R${self._monthly_expenses.get('viagens', 0):.2f}\n"
         )
+
+# Structural Pattern: Decorator
+class FinancialDecorator:
+    def __init__(self, financial):
+        self._financial = financial
+
+    def __getattr__(self, name):
+        return getattr(self._financial, name)
+
+    def print_summary(self):
+        print(self._financial.__str__())
+
+# Example Observer for demonstration
+class FinancialObserver:
+    def update(self, record):
+        print(f"Observer: Novo registro financeiro adicionado: {record}")

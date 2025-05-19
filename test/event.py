@@ -10,10 +10,29 @@ class Event(ABC):
         self.__date = date
         self.__time = time
         self.__location = location
+        self._observers = []  # For observer pattern
+    
+    # Creational pattern: Factory method
+    @classmethod
+    def create_event(cls, type, date, time, location):
+        return cls(type, date, time, location)
     
     @staticmethod
     def generate_id():
         return str(uuid.uuid4()) 
+    
+    # Observer pattern methods (Behavioral)
+    def add_observer(self, observer):
+        if observer not in self._observers:
+            self._observers.append(observer)
+    
+    def remove_observer(self, observer):
+        if observer in self._observers:
+            self._observers.remove(observer)
+    
+    def notify_observers(self, message):
+        for observer in self._observers:
+            observer.update(self, message)
     
     # Getters
     def get_id(self):
@@ -53,6 +72,7 @@ class Event(ABC):
             self.set_time(time)
         if location:
             self.set_location(location)
+        self.notify_observers("Event details updated")  # Notify observers on update
 
     @abstractmethod
     def check_status(self):
@@ -68,6 +88,10 @@ class Event(ABC):
             "location": self.__location
         }
 
+    # Structural pattern: Adapter to JSON
+    def to_json(self):
+        return json.dumps(self.to_dict())
+
     def __str__(self):
         return (
             f"ID: {self.__id}\n"
@@ -76,3 +100,8 @@ class Event(ABC):
             f"Hora: {self.__time}\n"
             f"Localização: {self.__location}"
         )
+
+# Example observer for demonstration
+class EventObserver:
+    def update(self, event, message):
+        print(f"Observer notified for event {event.get_id()}: {message}")

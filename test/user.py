@@ -1,3 +1,5 @@
+import json
+
 class Usuario:
     def __init__(self, nome, username, password, role):
         self.nome = nome
@@ -10,7 +12,7 @@ class Usuario:
 
     def __str__(self):
         return f"Nome: {self.nome}, Username: {self.username}, Função: {self.role}"
-    
+
 class Tecnico(Usuario):
     def __init__(self, nome, username, password, especializacao):
         super().__init__(nome, username, password, role="técnico")
@@ -18,7 +20,7 @@ class Tecnico(Usuario):
 
     def __str__(self):
         return super().__str__() + f", Especialização: {self.especializacao}"
-    
+
 class Atleta(Usuario):
     def __init__(self, nome, username, password, posicao):
         super().__init__(nome, username, password, role="atleta")
@@ -26,7 +28,7 @@ class Atleta(Usuario):
 
     def __str__(self):
         return super().__str__() + f", Posição: {self.posicao}"
-    
+
 class SecretarioFinanceiro(Usuario):
     def __init__(self, nome, username, password, setor):
         super().__init__(nome, username, password, role="secretário financeiro")
@@ -34,7 +36,7 @@ class SecretarioFinanceiro(Usuario):
 
     def __str__(self):
         return super().__str__() + f", Setor: {self.setor}"
-    
+
 class Gerente(Usuario):
     def __init__(self, nome, username, password, departamento):
         super().__init__(nome, username, password, role="gerente")
@@ -42,25 +44,56 @@ class Gerente(Usuario):
 
     def __str__(self):
         return super().__str__() + f", Departamento: {self.departamento}"
-    
-import json
+
+# Structural Pattern: Proxy
+class UsuarioProxy:
+    def __init__(self, usuario):
+        self._usuario = usuario
+
+    def autenticar(self, username, password):
+        # Could add logging, access control, etc.
+        print(f"Proxy: Autenticando {username}")
+        return self._usuario.autenticar(username, password)
+
+    def __str__(self):
+        return str(self._usuario)
 
 class GerenciadorUsuarios:
     def __init__(self):
         self.usuarios = []
-    def __init__(self):
-        self.usuarios = []
+        self.observadores = []
         self.carregar_usuarios()
 
+    # Creational Pattern: Factory Method
+    @staticmethod
+    def criar_usuario_factory(tipo, nome, username, password):
+        if tipo == "1":
+            return Tecnico(nome, username, password, "especialização indefinida")
+        elif tipo == "2":
+            return Atleta(nome, username, password, "posição indefinida")
+        elif tipo == "3":
+            return SecretarioFinanceiro(nome, username, password, "setor indefinido")
+        elif tipo == "4":
+            return Gerente(nome, username, password, "departamento indefinido")
+        else:
+            return None
+
+    # Behavioral Pattern: Observer
+    def adicionar_observador(self, observador):
+        self.observadores.append(observador)
+
+    def notificar_observadores(self, usuario):
+        for obs in self.observadores:
+            obs(usuario)
+
     def autenticar_usuario(self, username, password):
-        """Autentica um usuário e retorna o objeto do usuário ou None se falhar."""
         for usuario in self.usuarios:
-            if usuario.username == username and usuario.password == password:
-                return usuario  
+            proxy = UsuarioProxy(usuario)
+            if proxy.autenticar(username, password):
+                return proxy
         return None
-    
-    def criar_usuario(gerenciador):
-        """Permite ao usuário criar um novo login no sistema"""
+
+    def criar_usuario(self):
         print("\n Criar Novo Usuário")
         nome = input("Nome completo: ")
         username = input("Username: ")
@@ -74,21 +107,15 @@ class GerenciadorUsuarios:
 
         tipo = input("Digite o número da opção: ")
 
-        if tipo == "1":
-            usuario = Tecnico(nome, username, password, "especialização indefinida")
-        elif tipo == "2":
-            usuario = Atleta(nome, username, password, "posição indefinida")
-        elif tipo == "3":
-            usuario = SecretarioFinanceiro(nome, username, password, "setor indefinido")
-        elif tipo == "4":
-            usuario = Gerente(nome, username, password, "departamento indefinido")
-        else:
+        usuario = self.criar_usuario_factory(tipo, nome, username, password)
+        if usuario is None:
             print(" Tipo inválido!")
             return
 
-        gerenciador.adicionar_usuario(usuario)
+        self.adicionar_usuario(usuario)
+        self.notificar_observadores(usuario)
         print(" Usuário criado com sucesso! Agora você pode fazer login.")
-    
+
     def adicionar_usuario(self, usuario):
         self.usuarios.append(usuario)
 
@@ -112,3 +139,6 @@ class GerenciadorUsuarios:
                         self.usuarios.append(Gerente(item["nome"], item["username"], item["password"], item["departamento"]))
         except FileNotFoundError:
             print("Arquivo de usuários não encontrado. Iniciando com lista vazia.")
+
+def novo_usuario_observador(usuario):
+    print(f"Observador: Novo usuário criado -> {usuario}")

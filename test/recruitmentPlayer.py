@@ -1,18 +1,34 @@
 import json
 
 class RecruitmentManager:
-    
-    _prospects_list = []  
+    _prospects_list = []
 
     def __init__(self, name, position, age, stats=None):
-        self._name = name  
+        self._name = name
         self._position = position
         self._age = age
         self._stats = stats if stats else {}
         RecruitmentManager._prospects_list.append(self)
         RecruitmentManager.save_to_json()
 
-    # Getters e Setters
+    # Creational Pattern: Factory Method
+    @classmethod
+    def from_dict(cls, data):
+        return cls(
+            name=data.get("name"),
+            position=data.get("position"),
+            age=data.get("age"),
+            stats=data.get("stats", {})
+        )
+
+    # Structural Pattern: Adapter (to JSON string)
+    def to_json(self):
+        return json.dumps(self.to_dict(), indent=4)
+
+    # Behavioral Pattern: Visitor
+    def accept(self, visitor):
+        return visitor.visit(self)
+
     @property
     def name(self):
         return self._name
@@ -73,7 +89,7 @@ class RecruitmentManager:
                 data = json.load(file)
                 cls._prospects_list = []
                 for item in data:
-                    prospect = RecruitmentManager(item["name"], item["position"], item["age"], item["stats"])
+                    prospect = RecruitmentManager.from_dict(item)
                     cls._prospects_list.append(prospect)
         except FileNotFoundError:
             print(f"Arquivo {filename} não encontrado. Iniciando com lista vazia.")
@@ -88,10 +104,15 @@ class RecruitmentManager:
             f" Estatísticas: {self._stats}"
         )
 
-    # buscar atleta por nome
     @classmethod
     def get_prospect_by_name(cls, name):
         for prospect in cls._prospects_list:
             if prospect.name == name:
                 return prospect
         return None
+
+# Example Visitor for the behavioral pattern
+class ProspectVisitor:
+    def visit(self, prospect):
+        # Example: return a summary string
+        return f"{prospect.name} ({prospect.position}), Age: {prospect.age}"
