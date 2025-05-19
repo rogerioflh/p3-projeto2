@@ -1,3 +1,5 @@
+## Para rodar o código, navegue até a pasta test e execute o código manager.py
+
 1. Padrão Criacional: Factory Method
 
 event.py
